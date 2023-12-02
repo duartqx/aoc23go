@@ -16,5 +16,6 @@ func main() {
 
 	// log.Println(day1.Part1(data))
 	// log.Println(day1.Part2(data))
-	log.Println(day2.Part1(data))
+	// log.Println(day2.Part1(data))
+	log.Println(day2.Part2(data))
 }

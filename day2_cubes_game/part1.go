@@ -5,16 +5,7 @@ import (
 	"strings"
 )
 
-const (
-	red   int = 12
-	green     = 13
-	blue      = 14
-)
-
-type CubeGames struct {
-}
-
-func (cg CubeGames) getId(s string) (id int) {
+func getId(s string) (id int) {
 	if strings.Contains(s, ":") {
 		s = strings.Split(strings.TrimPrefix(s, "Game "), ":")[0]
 
@@ -25,7 +16,7 @@ func (cg CubeGames) getId(s string) (id int) {
 	return id
 }
 
-func (cg CubeGames) getSets(s string) *[][]string {
+func getGameSets(s string) *[][]string {
 	sets := [][]string{}
 	for _, set := range strings.Split(strings.Split(s, ":")[1], ";") {
 		sets = append(sets, strings.Split(strings.TrimSpace(set), ","))
@@ -33,23 +24,23 @@ func (cg CubeGames) getSets(s string) *[][]string {
 	return &sets
 }
 
-func (cg CubeGames) getValueAndColor(vc string) (value int, color string) {
+func getValueAndColor(vc string) (value int, color string) {
 	valueAndColor := strings.Split(strings.TrimSpace(vc), " ")
 	value, _ = strconv.Atoi(strings.TrimSpace(valueAndColor[0]))
 	return value, strings.TrimSpace(valueAndColor[1])
 }
 
-func (cg CubeGames) FromGame(g string) (total int) {
+func FromGamePart1(g string) (total int) {
 	isPossible := true
-	for _, set := range *cg.getSets(g) {
+	for _, set := range *getGameSets(g) {
 		for _, c := range set {
-			value, color := cg.getValueAndColor(c)
+			value, color := getValueAndColor(c)
 			switch {
-			case color == "red" && value > red:
+			case color == "red" && value > 12:
 				isPossible = false
-			case color == "green" && value > green:
+			case color == "green" && value > 13:
 				isPossible = false
-			case color == "blue" && value > blue:
+			case color == "blue" && value > 14:
 				isPossible = false
 			}
 			if !isPossible {
@@ -58,17 +49,15 @@ func (cg CubeGames) FromGame(g string) (total int) {
 		}
 	}
 	if isPossible {
-		total += cg.getId(g)
+		total += getId(g)
 	}
 	return total
 }
 
 func Part1(data <-chan string) (total int) {
 
-	cg := CubeGames{}
-
 	for g := range data {
-		total += cg.FromGame(g)
+		total += FromGamePart1(g)
 	}
 
 	return total
