@@ -8,10 +8,11 @@ import (
 
 func main() {
 
-	data, err := getdata.GetInputChannel("./input")
+	data, err := getdata.GetInputChannel("./day1_calibration_value/input")
 	if err != nil {
 		log.Fatal(err)
 	}
-	//log.Println(day1.Part01(data))
+
+	// log.Println(day1.Part1(data))
 	log.Println(day1.Part2(data))
 }
