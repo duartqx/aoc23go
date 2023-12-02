@@ -1,51 +1,12 @@
-package main
+package day1
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 )
 
-func day01Part01(puzzle <-chan string) (total int) {
-
-	for p := range puzzle {
-		var (
-			calibrationValue    string
-			calibrationValueInt int
-		)
-
-		for _, i := range p {
-			iStr := fmt.Sprintf("%c", i)
-			_, err := strconv.Atoi(iStr)
-			if err == nil {
-				calibrationValue += iStr
-				break
-			}
-		}
-
-		for i := len(p) - 1; i >= 0; i-- {
-			iStr := fmt.Sprintf("%c", p[i])
-			_, err := strconv.Atoi(iStr)
-			if err == nil {
-				calibrationValue += iStr
-
-				break
-			}
-		}
-
-		if len(calibrationValue) == 1 {
-			calibrationValue += calibrationValue
-		}
-
-		calibrationValueInt, _ = strconv.Atoi(calibrationValue)
-		total += calibrationValueInt
-	}
-
-	return total
-}
-
-func day01Part02Chan(p string) <-chan string {
+func Part2Chan(p string) <-chan string {
 
 	ch := make(chan string)
 
@@ -97,11 +58,11 @@ func day01Part02Chan(p string) <-chan string {
 	return ch
 }
 
-func day01Part02(puzzle <-chan string) (total int) {
+func Part2(puzzle <-chan string) (total int) {
 	for p := range puzzle {
 		var calibrationValues []string
 
-		for i := range day01Part02Chan(p) {
+		for i := range Part2Chan(p) {
 			calibrationValues = append(calibrationValues, i)
 		}
 
@@ -119,13 +80,4 @@ func day01Part02(puzzle <-chan string) (total int) {
 
 	}
 	return total
-}
-
-func main() {
-	data, err := GetInputChannel("./input")
-	if err != nil {
-		log.Fatal(err)
-	}
-	//log.Println(day01Part01(data))
-	log.Println(day01Part02(data))
 }
