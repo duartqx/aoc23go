@@ -1,125 +1,114 @@
 package day3gearratios
 
 import (
-	"errors"
 	"log"
 	"regexp"
 	"strconv"
-	"strings"
 )
 
-type checker struct {
-	start *regexp.Regexp
-	end   *regexp.Regexp
+type ratio struct {
+	startIndex int
+	endIndex   int
+	val        string
 }
 
-func newChecker() *checker {
-	return &checker{
-		start: regexp.MustCompile(`^[^\d].*`),
-		end:   regexp.MustCompile(`.*[^\d]$`),
-	}
+func newRatio() *ratio {
+	return &ratio{}
+
 }
 
-func (ch checker) checkLeftRight(s string) (value int) {
-	var (
-		currentInt int
-	)
+func (r *ratio) reset() {
+	r.startIndex = 0
+	r.endIndex = 0
+	r.val = ""
 
-	if s == "" {
-		return value
-	}
+}
 
+func (r ratio) isDigit(b byte) bool {
+	matched, _ := regexp.MatchString(`\d`, string(b))
+	return matched
+}
+
+func (r ratio) isSpecial(b byte) bool {
+	matched, _ := regexp.MatchString(`[^\d.]`, string(b))
+	return matched
+}
+
+func (r ratio) checkLeftRight(d string) (value int) {
 	// Check left and right
-	if ch.start.MatchString(s) {
-		currentInt, _ = strconv.Atoi(s[1:])
-		value += currentInt
-	} else if ch.end.MatchString(s) {
-		currentInt, _ = strconv.Atoi(s[:len(s)-1])
-		value += currentInt
+	if r.isSpecial(d[r.startIndex]) || r.isSpecial(d[r.endIndex-1]) {
+		value, _ = strconv.Atoi(r.val)
 	}
 	return value
 }
 
-func (ch checker) getIndexes(d, s string) (int, int, error) {
-	startIndex := strings.Index(d, s)
-	if startIndex == -1 {
-		return 0, 0, errors.New("Not found")
+func (r ratio) checkAboveBellow(above, bellow *string) (value int) {
+	for i := r.startIndex; i <= r.endIndex; i++ {
+
+		// Check above
+		if above != nil && r.isSpecial((*above)[i]) {
+			value, _ := strconv.Atoi(r.val)
+			return value
+		}
+		// Check bellow
+		if bellow != nil && r.isSpecial((*bellow)[i]) {
+			value, _ := strconv.Atoi(r.val)
+			return value
+
+		}
 	}
-	endIndex := startIndex + len(s)
-	if endIndex < len(d) {
-		endIndex++
-	}
-	if startIndex != 0 {
-		startIndex--
-	}
-	return startIndex, endIndex, nil
+	return value
 }
 
-func (ch checker) check(m, s string) (val int) {
-	if m != "." && ch.start.MatchString(m) {
-		val, _ = strconv.Atoi(s)
+func getAboveBellow(i int, data *[]string) (above *string, bellow *string) {
+
+	if i > 0 {
+		above = &(*data)[i-1]
 	}
-	return val
+
+	if i+1 < len(*data) {
+		bellow = &(*data)[i+1]
+	}
+
+	return above, bellow
 }
 
-func Part1(data <-chan string) (total int) {
+func Part1(data *[]string) (total int) {
 
-	ch := newChecker()
+	for i, d := range *data {
 
-	var (
-		slicedData []string
-	)
+		r := newRatio()
 
-	for d := range data {
-		slicedData = append(slicedData, d)
-	}
+		above, bellow := getAboveBellow(i, data)
 
-	for i, d := range slicedData {
+		for j := 0; j < len(d); j++ {
 
-		dotSliced := strings.Split(d, ".")
-
-		for _, s := range dotSliced {
-
-			hasLeftRight := ch.checkLeftRight(s)
-			if hasLeftRight != 0 {
-				total += hasLeftRight
-				continue
-			}
-
-			startIndex, endIndex, err := ch.getIndexes(d, s)
-			if err != nil {
-				continue
-			}
-			for k := startIndex; k < endIndex; k++ {
-				// Check above
-				if i != 0 {
-					if val := ch.check(string(slicedData[i-1][k]), s); val != 0 {
-						total += val
-						break
+			if r.isDigit(d[j]) {
+				if r.val == "" {
+					if j > 0 {
+						r.startIndex = j - 1
+					} else {
+						r.startIndex = j
 					}
 				}
-
-				// Check bellow
-				if i < (len(slicedData) - 1) {
-					if val := ch.check(string(slicedData[i+1][k]), s); val != 0 {
-						total += val
-						break
-					}
+				r.val += string(d[j])
+			} else if r.val != "" {
+				if j+1 < len(d) {
+					r.endIndex = j + 1
+				} else {
+					r.endIndex = j
 				}
+
+				if val := r.checkLeftRight(d); val != 0 {
+					total += val
+				} else if val := r.checkAboveBellow(above, bellow); val != 0 {
+					total += val
+				}
+
+				r.reset()
 			}
 		}
-
 	}
-	// [467  114  ]
-	// [   *      ]
-	// [  35  633 ]
-	// [      #   ]
-	// [617*      ]
-	// [     + 58 ]
-	// [  592     ]
-	// [      755 ]
-	// [   $ *    ]
-	// [ 664 598  ]
 	log.Println(total)
 	return total
 }

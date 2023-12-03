@@ -10,7 +10,7 @@ import (
 
 func main() {
 
-	data, err := getdata.GetInputChannel("./day3_gear_ratios/sample")
+	data, err := getdata.GetInputSlice("./day3_gear_ratios/input")
 	if err != nil {
 		log.Fatal(err)
 	}
