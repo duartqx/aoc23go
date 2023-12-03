@@ -1,7 +1,6 @@
 package day3gearratios
 
 import (
-	"log"
 	"regexp"
 	"strconv"
 )
@@ -34,9 +33,9 @@ func (r ratio) isSpecial(b byte) bool {
 	return matched
 }
 
-func (r ratio) checkLeftRight(d string) (value int) {
+func (r ratio) checkLeftRight(s string) (value int) {
 	// Check left and right
-	if r.isSpecial(d[r.startIndex]) || r.isSpecial(d[r.endIndex-1]) {
+	if r.isSpecial(s[r.startIndex]) || r.isSpecial(s[r.endIndex]) {
 		value, _ = strconv.Atoi(r.val)
 	}
 	return value
@@ -93,11 +92,7 @@ func Part1(data *[]string) (total int) {
 				}
 				r.val += string(d[j])
 			} else if r.val != "" {
-				if j+1 < len(d) {
-					r.endIndex = j + 1
-				} else {
-					r.endIndex = j
-				}
+				r.endIndex = j
 
 				if val := r.checkLeftRight(d); val != 0 {
 					total += val
@@ -109,6 +104,5 @@ func Part1(data *[]string) (total int) {
 			}
 		}
 	}
-	log.Println(total)
 	return total
 }
