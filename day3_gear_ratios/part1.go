@@ -9,6 +9,8 @@ type ratio struct {
 	startIndex int
 	endIndex   int
 	val        string
+	above      *string
+	bellow     *string
 }
 
 func newRatio() *ratio {
@@ -65,54 +67,52 @@ func (r ratio) checkLeftRight(s *string) (value int) {
 	return value
 }
 
-func (r ratio) checkAboveBellow(above, bellow *string) (value int) {
+func (r ratio) checkAboveBellow() (value int) {
 
 	// Check above
-	if above != nil && r.hasSpecial((*above)[r.getStartIndex():r.getEndIndex()]) {
+	if r.above != nil && r.hasSpecial((*r.above)[r.getStartIndex():r.getEndIndex()]) {
 		value, _ = strconv.Atoi(r.val)
 		return value
 	}
 	// Check bellow
-	if bellow != nil && r.hasSpecial((*bellow)[r.getStartIndex():r.getEndIndex()]) {
+	if r.bellow != nil && r.hasSpecial((*r.bellow)[r.getStartIndex():r.getEndIndex()]) {
 		value, _ = strconv.Atoi(r.val)
 		return value
 	}
 	return value
 }
 
-func (r ratio) getValue(above, bellow, d *string, i int) (value int) {
+func (r ratio) getValue(d *string, i int) (value int) {
 	r.endIndex = i
 
 	if value = r.checkLeftRight(d); value != 0 {
 		return value
-	} else if value = r.checkAboveBellow(above, bellow); value != 0 {
+	} else if value = r.checkAboveBellow(); value != 0 {
 		return value
 	}
 	return value
 }
 
-func getAboveBellow(i int, data *[]string) (above, bellow *string) {
+func (r *ratio) setAboveBellow(i int, data *[]string) *ratio {
 
 	if i > 0 {
-		above = &(*data)[i-1]
+		r.above = &(*data)[i-1]
 	}
 
 	if i+1 < len(*data) {
-		bellow = &(*data)[i+1]
+		r.bellow = &(*data)[i+1]
 	}
 
-	return above, bellow
+	return r
 }
 
 func Part1(data *[]string) (total int) {
 
 	for i, d := range *data {
 
-		r := newRatio()
+		r := newRatio().setAboveBellow(i, data)
 
-		above, bellow := getAboveBellow(i, data)
-
-		for j := 0; j < len(d); {
+		for j := 0; j < len(d); j++ {
 
 			if r.isDigit(d[j]) {
 
@@ -120,16 +120,14 @@ func Part1(data *[]string) (total int) {
 
 			} else if !r.valueIsEmpty() {
 
-				total += r.getValue(above, bellow, &d, j)
+				total += r.getValue(&d, j)
 
 				r.resetValue()
 			}
 
-			if j+1 == len(d) {
-				total += r.getValue(above, bellow, &d, j)
+			if j+1 == len(d) && !r.valueIsEmpty() {
+				total += r.getValue(&d, j)
 			}
-
-			j++
 		}
 	}
 	return total
