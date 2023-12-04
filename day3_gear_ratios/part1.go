@@ -13,14 +13,34 @@ type ratio struct {
 
 func newRatio() *ratio {
 	return &ratio{}
-
 }
 
-func (r *ratio) reset() {
+func (r *ratio) addValue(s byte, i int) {
+	if r.val == "" {
+		r.startIndex = i
+	}
+	r.val += string(s)
+}
+
+func (r *ratio) resetValue() {
 	r.startIndex = 0
 	r.endIndex = 0
 	r.val = ""
+}
 
+func (r ratio) getStartIndex() int {
+	if r.startIndex > 0 {
+		return r.startIndex - 1
+	}
+	return r.startIndex
+}
+
+func (r ratio) getEndIndex() int {
+	return r.endIndex + 1
+}
+
+func (r ratio) valueIsEmpty() bool {
+	return r.val == ""
 }
 
 func (r ratio) isDigit(b byte) bool {
@@ -33,33 +53,45 @@ func (r ratio) isSpecial(b byte) bool {
 	return matched
 }
 
-func (r ratio) checkLeftRight(s string) (value int) {
-	// Check left and right
-	if r.isSpecial(s[r.startIndex]) || r.isSpecial(s[r.endIndex]) {
+func (r ratio) hasSpecial(s string) bool {
+	matched, _ := regexp.MatchString(`[^\d.]`, s)
+	return matched
+}
+
+func (r ratio) checkLeftRight(s *string) (value int) {
+	if r.hasSpecial((*s)[r.getStartIndex():r.getEndIndex()]) {
 		value, _ = strconv.Atoi(r.val)
 	}
 	return value
 }
 
 func (r ratio) checkAboveBellow(above, bellow *string) (value int) {
-	for i := r.startIndex; i <= r.endIndex; i++ {
 
-		// Check above
-		if above != nil && r.isSpecial((*above)[i]) {
-			value, _ := strconv.Atoi(r.val)
-			return value
-		}
-		// Check bellow
-		if bellow != nil && r.isSpecial((*bellow)[i]) {
-			value, _ := strconv.Atoi(r.val)
-			return value
-
-		}
+	// Check above
+	if above != nil && r.hasSpecial((*above)[r.getStartIndex():r.getEndIndex()]) {
+		value, _ = strconv.Atoi(r.val)
+		return value
+	}
+	// Check bellow
+	if bellow != nil && r.hasSpecial((*bellow)[r.getStartIndex():r.getEndIndex()]) {
+		value, _ = strconv.Atoi(r.val)
+		return value
 	}
 	return value
 }
 
-func getAboveBellow(i int, data *[]string) (above *string, bellow *string) {
+func (r ratio) getValue(above, bellow, d *string, i int) (value int) {
+	r.endIndex = i
+
+	if value = r.checkLeftRight(d); value != 0 {
+		return value
+	} else if value = r.checkAboveBellow(above, bellow); value != 0 {
+		return value
+	}
+	return value
+}
+
+func getAboveBellow(i int, data *[]string) (above, bellow *string) {
 
 	if i > 0 {
 		above = &(*data)[i-1]
@@ -80,28 +112,24 @@ func Part1(data *[]string) (total int) {
 
 		above, bellow := getAboveBellow(i, data)
 
-		for j := 0; j < len(d); j++ {
+		for j := 0; j < len(d); {
 
 			if r.isDigit(d[j]) {
-				if r.val == "" {
-					if j > 0 {
-						r.startIndex = j - 1
-					} else {
-						r.startIndex = j
-					}
-				}
-				r.val += string(d[j])
-			} else if r.val != "" {
-				r.endIndex = j
 
-				if val := r.checkLeftRight(d); val != 0 {
-					total += val
-				} else if val := r.checkAboveBellow(above, bellow); val != 0 {
-					total += val
-				}
+				r.addValue(d[j], j)
 
-				r.reset()
+			} else if !r.valueIsEmpty() {
+
+				total += r.getValue(above, bellow, &d, j)
+
+				r.resetValue()
 			}
+
+			if j+1 == len(d) {
+				total += r.getValue(above, bellow, &d, j)
+			}
+
+			j++
 		}
 	}
 	return total
